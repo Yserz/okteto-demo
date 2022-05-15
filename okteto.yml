@@ -2,11 +2,11 @@ name: okteto-demo
 
 # The build section defines how to build the images of your development environment
 # More info: https://www.okteto.com/docs/reference/manifest/#build
-# build:
-#   my-service:
-#     context: .
-
-
+build:
+  next:
+    context: apps/next
+    dockerfile: Dockerfile
+    
 # The deploy section defines how to deploy your development environment
 # More info: https://www.okteto.com/docs/reference/manifest/#deploy
 deploy:
@@ -18,6 +18,7 @@ deploy:
 # More info: https://www.okteto.com/docs/reference/manifest/#dependencies
 # dependencies:
 #   - https://github.com/okteto/sample
+
 # The dev section defines how to activate a development container
 # More info: https://www.okteto.com/docs/reference/manifest/#dev
 # dev:
@@ -32,3 +33,8 @@ deploy:
 #     forward:
 #       - 8080:80
 
+dev: 
+  next:
+    command: yarn dev
+    sync:
+      - apps/next:/usr/
