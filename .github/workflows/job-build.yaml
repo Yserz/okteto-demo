@@ -1,0 +1,46 @@
+name: 'Build'
+
+on:
+  workflow_call:
+    outputs:
+      ARTIFACT_ID:
+        description: 'Artifact ID of the build'
+        value: ${{ jobs.build.outputs.ARTIFACT_ID }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      ARTIFACT_ID: ${{ steps.artifact-id.outputs.ARTIFACT_ID }}
+    strategy:
+      matrix:
+        node-version: [16.x]
+    steps:
+      - name: Checkout Git repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+
+      - name: Build
+        run: |-
+          yarn --frozen-lockfile
+          yarn build
+          cp yarn.lock dist/yarn.lock
+
+      - name: Generate artifact ID
+        id: artifact-id
+        run: echo "::set-output name=ARTIFACT_ID::next-${{ github.run_id }}"
+
+      - name: Archive build
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.artifact-id.outputs.ARTIFACT_ID }}
+          path: |
+            dist/
+          retention-days: 1

@@ -1,0 +1,55 @@
+name: 'Package Docker container'
+
+on:
+  workflow_call:
+    inputs:
+      ARTIFACT_ID:
+        required: true
+        type: string
+
+    outputs:
+      CONTAINER_TAG:
+        description: 'Tag of the uploaded docker container'
+        value: ${{ jobs.package.outputs.CONTAINER_TAG }}
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    outputs:
+      CONTAINER_TAG: ${{ steps.container-tag.outputs.CONTAINER_TAG }}
+    steps:
+      - name: Set up environment variables
+        run: |
+          echo "IMAGE_TAG=okteto-next:$GITHUB_SHA" >> $GITHUB_ENV
+          echo "IMAGE_ARCHIVE_NAME=next-image-${{ github.run_id }}.tar" >> $GITHUB_ENV
+
+      - name: Download app artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.ARTIFACT_ID }}
+
+      - name: Build Docker image
+        run: |-
+          docker build \
+            --tag "$IMAGE_TAG" \
+            .
+
+      - name: Export image
+        run: |-
+          docker save --output="$IMAGE_ARCHIVE_NAME" $IMAGE_TAG
+
+      - name: Archive image
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.IMAGE_ARCHIVE_NAME }}
+          path: |
+            ${{ env.IMAGE_ARCHIVE_NAME }}
+          retention-days: 1
+
+      # - name: Push the Docker image
+      #   run: |-
+      #     docker push "$IMAGE_TAG"
+
+      - name: Output Container tag
+        id: container-tag
+        run: echo "::set-output name=CONTAINER_TAG::$IMAGE_TAG"

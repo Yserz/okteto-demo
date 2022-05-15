@@ -1,0 +1,17 @@
+{
+  "name": "okteto-demo",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "turbo": "^1.2.9",
+    "typescript": "^4.6.4"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build"
+  }
+}
